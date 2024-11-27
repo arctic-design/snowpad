@@ -6,10 +6,20 @@
     "dev": "nx dev",
     "build": "nx build",
     "start": "nx start",
-    "test": "nx test"
+    "test": "nx test",
+    "nx:upgrade": "npx nx migrate latest",
+    "upgrade": "yarn upgrade-interactive"
   },
   "private": true,
   "dependencies": {
+    "@arctic-kit/snow": "^0.21.0",
+    "@dagrejs/dagre": "^1.1.4",
+    "@floating-ui/react": "^0.26.28",
+    "@monaco-editor/react": "^4.6.0",
+    "@pigment-css/nextjs-plugin": "^0.0.28",
+    "@pigment-css/react": "^0.0.28",
+    "@xyflow/react": "^12.3.5",
+    "framer-motion": "^11.11.17",
     "next": "14.2.16",
     "react": "18.3.1",
     "react-dom": "18.3.1"

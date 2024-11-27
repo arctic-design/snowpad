@@ -1,4 +1,14 @@
 import './global.css';
+import '@pigment-css/react/styles.css';
+import '@arctic-kit/snow/style.css';
+import '@xyflow/react/dist/style.css';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '900'],
+});
 
 export const metadata = {
   title: 'Welcome to snowpad',
@@ -11,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className="theme-light">
+      <body className={`${inter.className}`}>{children}</body>
     </html>
   );
 }

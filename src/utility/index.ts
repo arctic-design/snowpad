@@ -1,0 +1,1 @@
+export { validateJSON } from './validateJSON';
