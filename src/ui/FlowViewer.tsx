@@ -1,5 +1,5 @@
 'use client';
-import Dagre from '@dagrejs/dagre';
+import dagre from '@dagrejs/dagre';
 import React, { useCallback, useEffect } from 'react';
 import {
   ReactFlow,
@@ -14,44 +14,54 @@ import {
   Node,
   Edge,
   useReactFlow,
+  Position,
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
-
 import { generateFlowData } from '@/utility/generateFlowData';
 import { CustomNode } from './CustomNode';
 
-const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
-  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'LR' });
+const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
-  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
-  nodes.forEach((node) =>
-    g.setNode(node.id, {
+const nodeWidth = 172;
+const nodeHeight = 36;
+
+const getLayoutedElements = (
+  nodes: Node[],
+  edges: Edge[],
+  direction: 'LR' | 'TB' = 'LR'
+): { nodes: Node[]; edges: Edge[] } => {
+  const isHorizontal = direction === 'LR';
+  dagreGraph.setGraph({ rankdir: direction });
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  const layoutedNodes: Node[] = nodes.map((node) => {
+    const dagreNode = dagreGraph.node(node.id);
+    return {
       ...node,
-      width: node.measured?.width ?? 0,
-      height: node.measured?.height ?? 0,
-    })
-  );
+      position: {
+        x: dagreNode.x - nodeWidth / 2,
+        y: dagreNode.y - nodeHeight / 2,
+      },
+      targetPosition: isHorizontal ? Position.Left : Position.Top,
+      sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
+    };
+  });
 
-  Dagre.layout(g);
-
-  return {
-    nodes: nodes.map((node) => {
-      const position = g.node(node.id);
-      // We are shifting the dagre node position (anchor=center center) to the top left
-      // so it matches the React Flow node anchor point (top left).
-      const x = position.x - (node.measured?.width ?? 0) / 2;
-      const y = position.y - (node.measured?.height ?? 0) / 2;
-
-      return { ...node, position: { x, y } };
-    }),
-    edges,
-  };
+  return { nodes: layoutedNodes, edges };
 };
 
 type FlowViewerProps = {
-  jsonData: any;
+  jsonData: Record<string, unknown>;
 };
 
 const FlowViewerContent: React.FC<FlowViewerProps> = ({ jsonData }) => {
@@ -69,22 +79,19 @@ const FlowViewerContent: React.FC<FlowViewerProps> = ({ jsonData }) => {
 
   useEffect(() => {
     const { nodes, edges } = generateFlowData(jsonData);
-    console.log('jsonData: ', jsonData);
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      nodes,
+      edges
+    );
 
-    // const layouted = getLayoutedElements(nodes, edges);
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
 
-    // setNodes([...layouted.nodes]);
-    // setEdges([...layouted.edges]);
-
-    window.requestAnimationFrame(() => {
-      fitView();
-    });
-
-    setNodes(nodes);
-    setEdges(edges);
-  }, [jsonData, setNodes, setEdges]);
+    fitView();
+  }, [jsonData, setNodes, setEdges, fitView]);
 
   console.log('nodes: ', nodes);
+  console.log('edges: ', edges);
 
   return (
     <ReactFlow
@@ -97,10 +104,8 @@ const FlowViewerContent: React.FC<FlowViewerProps> = ({ jsonData }) => {
       nodeTypes={{ custom: CustomNode }}
       defaultEdgeOptions={{
         animated: true,
-        type: 'smoothstep',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-        },
+        // type: 'smoothstep',
+        markerEnd: { type: MarkerType.ArrowClosed },
       }}
     >
       <Background />

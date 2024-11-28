@@ -1,181 +1,95 @@
 import { Node, Edge } from '@xyflow/react';
 
 let nodeIdCounter = 0; // Unique counter for node IDs.
-const horizontalSpacing = 200; // Spacing between levels
-const verticalSpacing = 100; // Spacing between siblings
+const position = { x: 0, y: 0 };
 
-export const generateFlowData = (
-  data: any,
-  parentId: string | null = null,
-  depth: number = 0,
-  siblingIndex: number = 0
-): { nodes: Node[]; edges: Edge[] } => {
-  const nodes: Node[] = [];
-  const edges: Edge[] = [];
-  let currentSiblingIndex = siblingIndex; // Track sibling position for vertical alignment
+// Transform null values to a readable format
+const transformData = (value: any): string | any =>
+  value === null ? 'null' : value;
 
-  // Convert `null` values to "null" string
-  const transformData = (value: any) => (value === null ? 'null' : value);
+// Create a node
+const createNode = (id: string, label: string): Node => ({
+  id,
+  type: 'custom',
+  position,
+  data: { label },
+});
 
-  // Handle the case where the root is an array
-  if (Array.isArray(data)) {
-    data.forEach((element, arrayIndex) => {
-      const elementSiblingIndex = currentSiblingIndex + arrayIndex * 5; // Add spacing between top-level items
-      const childData = generateFlowData(
-        transformData(element),
-        null, // No parentId for root array items
-        depth,
-        elementSiblingIndex
-      );
-      nodes.push(...childData.nodes);
-      edges.push(...childData.edges);
-    });
+// Create an edge
+const createEdge = (source: string, target: string): Edge => ({
+  id: `e-${source}-${target}`,
+  source,
+  target,
+  deletable: false,
+});
 
-    return { nodes, edges }; // Return early since root is an array
-  }
-
-  // Handle primitives (e.g., "name": "John Doe", "age": 30")
+const findPrimitives = (data: any) => {
   const primitives = Object.entries(data)
-    .filter(
-      ([_, value]) =>
-        !Array.isArray(value) && typeof transformData(value) !== 'object'
-    )
+    .filter(([_, value]) => typeof value !== 'object' && !Array.isArray(value))
     .map(([key, value]) => `${key}: ${transformData(value)}`)
     .join(', ');
 
-  let primitivesNodeId: string | null = null;
+  return primitives;
+};
 
-  if (primitives) {
-    primitivesNodeId = `node-${++nodeIdCounter}`;
-    nodes.push({
-      id: primitivesNodeId,
-      type: 'custom',
-      position: {
-        x: depth * horizontalSpacing,
-        y: currentSiblingIndex * verticalSpacing, // Initial position for root node
-      },
-      data: { label: primitives },
-    });
+// Main function to generate nodes and edges
+export const generateFlowData = (
+  data: any,
+  parentId: string | null = null
+): { nodes: Node[]; edges: Edge[] } => {
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
 
-    if (parentId) {
-      edges.push({
-        id: `e-${parentId}-${primitivesNodeId}`,
-        source: parentId,
-        target: primitivesNodeId,
-        deletable: false,
-      });
+  let currentParentId = parentId;
+
+  if (typeof data !== 'object') {
+    const primitiveNodeId = `node-${++nodeIdCounter}`;
+    nodes.push(createNode(primitiveNodeId, data));
+    if (currentParentId) {
+      edges.push(createEdge(currentParentId, primitiveNodeId));
     }
+  } else if (typeof data === 'object') {
+    if (!Array.isArray(data)) {
+      const primitives = findPrimitives(data);
 
-    currentSiblingIndex++; // Increment sibling index for the next node
-  }
+      if (primitives) {
+        const primitivesNodeId = `node-${++nodeIdCounter}`;
+        nodes.push(createNode(primitivesNodeId, primitives));
 
-  // Handle nested objects and arrays
-  const nestedObject = Object.entries(data).filter(
-    ([_, value]) =>
-      Array.isArray(value) || typeof transformData(value) === 'object'
-  );
-
-  let childVerticalStart = currentSiblingIndex; // Track the vertical starting position for children
-  if (nestedObject.length > 0) {
-    nestedObject.forEach(([key, value], index) => {
-      const isArray = Array.isArray(value);
-
-      const label = `${key}(${isArray ? value.length : 1})`;
-      const objectNodeId = `node-${++nodeIdCounter}`;
-
-      // Position child nodes to the right of the parent node
-      nodes.push({
-        id: objectNodeId,
-        type: 'custom',
-        position: {
-          x: (depth + 1) * horizontalSpacing,
-          y: currentSiblingIndex * verticalSpacing,
-        },
-        data: { label },
-      });
-
-      edges.push({
-        id: `e-${primitivesNodeId || parentId}-${objectNodeId}`,
-        source: primitivesNodeId || parentId!,
-        target: objectNodeId,
-        deletable: false,
-      });
-
-      const childStartIndex = currentSiblingIndex; // Track the starting vertical index for children
-
-      if (isArray) {
-        if (typeof value[0] === 'string') {
-          // Handle arrays of strings correctly
-          value.forEach((element, arrayIndex) => {
-            const arrayNodeId = `node-${++nodeIdCounter}`;
-            nodes.push({
-              id: arrayNodeId,
-              type: 'custom',
-              position: {
-                x: (depth + 2) * horizontalSpacing,
-                y: (currentSiblingIndex + arrayIndex) * verticalSpacing,
-              },
-              data: { label: `${element}` },
-            });
-
-            edges.push({
-              id: `e-${objectNodeId}-${arrayNodeId}`,
-              source: objectNodeId,
-              target: arrayNodeId,
-              deletable: false,
-            });
-          });
-
-          currentSiblingIndex += value.length; // Increment for all array elements
-        } else {
-          // Process arrays of objects (e.g., "address", "roles")
-          value.forEach((element, arrayIndex) => {
-            const childData = generateFlowData(
-              transformData(element),
-              objectNodeId,
-              depth + 2,
-              currentSiblingIndex
-            );
-            nodes.push(...childData.nodes);
-            edges.push(...childData.edges);
-            currentSiblingIndex++; // Increment for each array element
-          });
+        if (currentParentId) {
+          edges.push(createEdge(currentParentId, primitivesNodeId));
         }
-      } else {
-        // Process objects
-        const childData = generateFlowData(
-          transformData(value),
-          objectNodeId,
-          depth + 2,
-          currentSiblingIndex
-        );
+
+        currentParentId = primitivesNodeId;
+      }
+
+      Object.entries(data)
+        .filter(([_, value]) => typeof value === 'object')
+        .forEach(([key, value]) => {
+          let objectNodeId = `node-${++nodeIdCounter}`;
+
+          if (Array.isArray(value)) {
+            nodes.push(createNode(objectNodeId, `${key}(${value.length})`));
+          } else {
+            nodes.push(createNode(objectNodeId, `${key}`));
+          }
+          if (currentParentId) {
+            edges.push(createEdge(currentParentId, objectNodeId));
+          }
+
+          const childData = generateFlowData(value, objectNodeId);
+          nodes.push(...childData.nodes);
+          edges.push(...childData.edges);
+        });
+    } else {
+      if (!currentParentId) {
+        currentParentId = `node-${++nodeIdCounter}`;
+      }
+      data.forEach((dataItem) => {
+        const childData = generateFlowData(dataItem, currentParentId);
         nodes.push(...childData.nodes);
         edges.push(...childData.edges);
-        currentSiblingIndex++; // Increment for the next sibling
-      }
-
-      // Center the parent node (e.g., Node-2) relative to its children
-      const childCount = currentSiblingIndex - childStartIndex;
-      if (childCount > 1) {
-        const parentNode = nodes.find((node) => node.id === objectNodeId);
-        if (parentNode) {
-          parentNode.position.y =
-            ((childStartIndex + currentSiblingIndex - 1) / 2) * verticalSpacing;
-        }
-      }
-    });
-  }
-
-  // Center Node-1 relative to its children
-  if (nestedObject.length > 0) {
-    const childCount = currentSiblingIndex - childVerticalStart;
-    if (childCount > 1) {
-      const rootNode = nodes.find((node) => node.id === primitivesNodeId);
-      if (rootNode) {
-        rootNode.position.y =
-          ((childVerticalStart + currentSiblingIndex - 1) / 2) *
-          verticalSpacing;
-      }
+      });
     }
   }
 
