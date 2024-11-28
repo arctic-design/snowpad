@@ -14,10 +14,33 @@ export const generateFlowData = (
   const edges: Edge[] = [];
   let currentSiblingIndex = siblingIndex; // Track sibling position for vertical alignment
 
-  // Handle primitives (e.g., "name": "John Doe", "age": 30)
+  // Convert `null` values to "null" string
+  const transformData = (value: any) => (value === null ? 'null' : value);
+
+  // Handle the case where the root is an array
+  if (Array.isArray(data)) {
+    data.forEach((element, arrayIndex) => {
+      const elementSiblingIndex = currentSiblingIndex + arrayIndex * 5; // Add spacing between top-level items
+      const childData = generateFlowData(
+        transformData(element),
+        null, // No parentId for root array items
+        depth,
+        elementSiblingIndex
+      );
+      nodes.push(...childData.nodes);
+      edges.push(...childData.edges);
+    });
+
+    return { nodes, edges }; // Return early since root is an array
+  }
+
+  // Handle primitives (e.g., "name": "John Doe", "age": 30")
   const primitives = Object.entries(data)
-    .filter(([_, value]) => typeof value !== 'object')
-    .map(([key, value]) => `${key}: ${value}`)
+    .filter(
+      ([_, value]) =>
+        !Array.isArray(value) && typeof transformData(value) !== 'object'
+    )
+    .map(([key, value]) => `${key}: ${transformData(value)}`)
     .join(', ');
 
   let primitivesNodeId: string | null = null;
@@ -29,7 +52,7 @@ export const generateFlowData = (
       type: 'custom',
       position: {
         x: depth * horizontalSpacing,
-        y: currentSiblingIndex * verticalSpacing, // Initial position for Node-1
+        y: currentSiblingIndex * verticalSpacing, // Initial position for root node
       },
       data: { label: primitives },
     });
@@ -48,7 +71,8 @@ export const generateFlowData = (
 
   // Handle nested objects and arrays
   const nestedObject = Object.entries(data).filter(
-    ([, value]) => typeof value === 'object'
+    ([_, value]) =>
+      Array.isArray(value) || typeof transformData(value) === 'object'
   );
 
   let childVerticalStart = currentSiblingIndex; // Track the vertical starting position for children
@@ -59,12 +83,12 @@ export const generateFlowData = (
       const label = `${key}(${isArray ? value.length : 1})`;
       const objectNodeId = `node-${++nodeIdCounter}`;
 
-      // Position Node-2, Node-3 (child objects) to the right of Node-1
+      // Position child nodes to the right of the parent node
       nodes.push({
         id: objectNodeId,
         type: 'custom',
         position: {
-          x: (depth + 1) * horizontalSpacing, // Move to the right of Node-1
+          x: (depth + 1) * horizontalSpacing,
           y: currentSiblingIndex * verticalSpacing,
         },
         data: { label },
@@ -81,7 +105,7 @@ export const generateFlowData = (
 
       if (isArray) {
         if (typeof value[0] === 'string') {
-          // Special handling for arrays of strings (e.g., "hobbies")
+          // Handle arrays of strings correctly
           value.forEach((element, arrayIndex) => {
             const arrayNodeId = `node-${++nodeIdCounter}`;
             nodes.push({
@@ -107,7 +131,7 @@ export const generateFlowData = (
           // Process arrays of objects (e.g., "address", "roles")
           value.forEach((element, arrayIndex) => {
             const childData = generateFlowData(
-              element,
+              transformData(element),
               objectNodeId,
               depth + 2,
               currentSiblingIndex
@@ -120,7 +144,7 @@ export const generateFlowData = (
       } else {
         // Process objects
         const childData = generateFlowData(
-          value,
+          transformData(value),
           objectNodeId,
           depth + 2,
           currentSiblingIndex

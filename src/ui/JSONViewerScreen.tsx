@@ -8,19 +8,432 @@ import { Box } from '@arctic-kit/snow';
 
 const initialJson = `[
   {
-    "name": "Alice",
-    "age": 25,
-    "skills": ["JavaScript", "React"]
+    "person": {
+      "name": "Epsilon",
+      "age": 42,
+      "address": [
+        {
+          "street": "202 Park Ave",
+          "city": "Boston",
+          "country": "Germany"
+        },
+        {
+          "street": "74 Broadway",
+          "city": "Bengaluru",
+          "country": "Germany"
+        }
+      ],
+      "roles": [
+        {
+          "designation": "Team Lead",
+          "level": "L2"
+        },
+        {
+          "designation": "Team Lead",
+          "level": "L4"
+        }
+      ],
+      "metadata": {
+        "skills": [
+          "Alpha",
+          "Zeta",
+          "Gamma"
+        ],
+        "experience": "20 years"
+      },
+      "organization": {
+        "name": "Alpha",
+        "children": [
+          {
+            "name": "Zeta",
+            "children": [
+              {
+                "name": "Epsilon",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Delta",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Beta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Alpha",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Epsilon",
+            "children": [
+              {
+                "name": "Gamma",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
   },
   {
-    "name": "Bob",
-    "age": 30,
-    "skills": ["Python", "Django"]
+    "person": {
+      "name": "Delta",
+      "age": 31,
+      "address": [
+        {
+          "street": "320 Park Ave",
+          "city": "Bengaluru",
+          "country": "USA"
+        },
+        {
+          "street": "957 Broadway",
+          "city": "Bengaluru",
+          "country": "Canada"
+        },
+        {
+          "street": "220 Hosur Rd",
+          "city": "Boston",
+          "country": "India"
+        }
+      ],
+      "roles": [
+        {
+          "designation": "Software Engg",
+          "level": "L5"
+        },
+        {
+          "designation": "Manager",
+          "level": "L3"
+        },
+        {
+          "designation": "Architect",
+          "level": "L2"
+        }
+      ],
+      "metadata": {
+        "skills": [
+          "Zeta",
+          "Beta",
+          "Beta"
+        ],
+        "experience": "11 years"
+      },
+      "organization": {
+        "name": "Alpha",
+        "children": [
+          {
+            "name": "Alpha",
+            "children": [
+              {
+                "name": "Delta",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Beta",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Beta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Epsilon",
+            "children": [
+              {
+                "name": "Epsilon",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Alpha",
+            "children": [
+              {
+                "name": "Gamma",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Beta",
+            "children": [
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Gamma",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Delta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
   },
   {
-    "name": "Charlie",
-    "age": 35,
-    "skills": ["Java", "Spring Boot"]
+    "person": {
+      "name": "Zeta",
+      "age": 37,
+      "address": [
+        {
+          "street": "841 Elm St",
+          "city": "Seattle",
+          "country": "USA"
+        },
+        {
+          "street": "959 Hosur Rd",
+          "city": "Boston",
+          "country": "Australia"
+        },
+        {
+          "street": "808 Broadway",
+          "city": "Boston",
+          "country": "India"
+        }
+      ],
+      "roles": [
+        {
+          "designation": "Team Lead",
+          "level": "L5"
+        },
+        {
+          "designation": "Team Lead",
+          "level": "L2"
+        },
+        {
+          "designation": "Team Lead",
+          "level": "L5"
+        }
+      ],
+      "metadata": {
+        "skills": [
+          "Delta",
+          "Beta",
+          "Epsilon"
+        ],
+        "experience": "19 years"
+      },
+      "organization": {
+        "name": "Delta",
+        "children": [
+          {
+            "name": "Delta",
+            "children": [
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Beta",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Zeta",
+            "children": [
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Delta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Delta",
+            "children": [
+              {
+                "name": "Delta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Beta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Beta",
+            "children": [
+              {
+                "name": "Zeta",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Alpha",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Epsilon",
+                "children": [
+                  "stone",
+                  "stone"
+                ]
+              },
+              {
+                "name": "Alpha",
+                "children": [
+                  "stone",
+                  "stone",
+                  "stone",
+                  "stone"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
   }
 ]
 
