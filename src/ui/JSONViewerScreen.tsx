@@ -469,7 +469,6 @@ const JSONViewerScreen: React.FC = () => {
   return (
     <div style={{ display: 'flex' }}>
       <Box sx={{ width: '30vw' }}>
-        <h1>JSON Viewer</h1>
         <JSONEditor value={jsonInput} onChange={handleJSONChange} />
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </Box>
