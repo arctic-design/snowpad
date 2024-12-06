@@ -14,29 +14,6 @@ const NodeContainer = styled.div<{ selected?: boolean }>(
   })
 );
 
-// const NodeContainer1 = styled.div<{ selected?: boolean }>`
-//   min-width: 120px;
-//   padding: 8px 8px;
-//   border-radius: 4px;
-//   background: ${({ theme, selected }) =>
-//     selected ? theme.colors.primary[100] : theme.colors.neutral[0]};
-//   color: ${({ theme }) => theme.colors.neutral[1000]};
-//   border: 1px solid
-//     ${({ theme, selected }) =>
-//       selected ? theme.colors.primary.main : theme.colors.grey[900]};
-
-//   //   .react-flow__handle {
-//   //     background: ${(props) => props.theme.colors.grey[900]};
-//   //     width: 8px;
-//   //     height: 10px;
-//   //     border-radius: 3px;
-//   //   }
-//   &:hover {
-//     background: ${({ theme, selected }) =>
-//       selected ? theme.colors.primary[100] : theme.colors.grey[200]};
-//   }
-// `;
-
 const NodeContent = styled.div({
   display: 'flex',
   flexDirection: 'column',

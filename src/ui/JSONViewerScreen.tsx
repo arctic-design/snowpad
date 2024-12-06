@@ -38,27 +38,11 @@ const EditorViewContainer = styled.div<{ hide?: boolean }>(
   })
 );
 
-const FlowViewerContainer = styled.div(
-  ({ theme: { vars: theme } }: SnowThemeArgs) => ({
-    // width: '70vw',
-    flex: 1,
-    height: '100%',
-    backgroundColor: theme.colors.neutral[0],
-    color: theme.colors.neutral[1000],
-    '.react-flow__controls': {
-      boxShadow: `0 0 2px 1px ${theme.colors.grey[300]} !important`,
-      button: {
-        backgroundColor: `${theme.colors.neutral[0]} !important`,
-        color: `${theme.colors.neutral[1000]} !important`,
-        borderBottomColor: `${theme.colors.grey[300]} !important`,
-      },
-    },
-    '.react-flow__attribution': {
-      backgroundColor: `${theme.colors.neutral[0]} !important`,
-      color: `${theme.colors.grey[300]} !important`,
-    },
-  })
-);
+const FlowViewerContainer = styled.div(() => ({
+  // width: '70vw',
+  flex: 1,
+  height: '100%',
+}));
 
 const initialJson = JSON.stringify(simpleDataStructure, null, 2);
 
@@ -131,6 +115,8 @@ const JSONViewerScreen: React.FC = () => {
           <FlowViewer
             jsonData={jsonData}
             onFlowCountChange={setTotalNodeAndEdges}
+            sidebarExpanded={!hideEditor}
+            isDarkMode={isDarkMode}
           />
         </FlowViewerContainer>
       </ContentContainer>

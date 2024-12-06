@@ -70,11 +70,15 @@ type FlowViewerProps = {
     nodeCount: number;
     edgeCount: number;
   }) => void;
+  sidebarExpanded: boolean;
+  isDarkMode?: boolean;
 };
 
 const FlowViewerContent: React.FC<FlowViewerProps> = ({
   jsonData,
   onFlowCountChange,
+  sidebarExpanded,
+  isDarkMode,
 }) => {
   const { fitView } = useReactFlow();
 
@@ -110,8 +114,15 @@ const FlowViewerContent: React.FC<FlowViewerProps> = ({
     fitView();
   }, [layoutedElements, setNodes, setEdges, fitView, onFlowCountChange]);
 
+  useEffect(() => {
+    setTimeout(() => {
+      fitView({ duration: 500 });
+    }, 400);
+  }, [sidebarExpanded, fitView]);
+
   return (
     <ReactFlow
+      colorMode={isDarkMode ? 'dark' : 'system'}
       nodes={nodes}
       edges={edges}
       onNodesChange={onNodesChange}
@@ -134,11 +145,13 @@ const FlowViewerContent: React.FC<FlowViewerProps> = ({
 export const FlowViewer: React.FC<FlowViewerProps> = ({
   jsonData,
   onFlowCountChange,
+  ...otherProps
 }) => (
   <ReactFlowProvider>
     <FlowViewerContent
       jsonData={jsonData}
       onFlowCountChange={onFlowCountChange}
+      {...otherProps}
     />
   </ReactFlowProvider>
 );
