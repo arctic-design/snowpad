@@ -1,4 +1,4 @@
-import './global.css';
+import './global.scss';
 import '@pigment-css/react/styles.css';
 import '@arctic-kit/snow/style.css';
 import '@xyflow/react/dist/style.css';

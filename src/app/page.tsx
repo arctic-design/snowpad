@@ -1,5 +1,7 @@
 import styles from './page.module.scss';
 import JSONViewerScreen from '@/ui/JSONViewerScreen';
+import { Header, HeaderSkeleton } from '@/ui/features/header';
+import { Suspense } from 'react';
 
 export default function Index() {
   /*
@@ -9,7 +11,9 @@ export default function Index() {
    */
   return (
     <div className={styles.page}>
-      <JSONViewerScreen />
+      <Suspense fallback={'Loading...'}>
+        <JSONViewerScreen />
+      </Suspense>
     </div>
   );
 }

@@ -1,3 +1,9 @@
+:root {
+  color-scheme: light dark;
+  // --header-bg-color: light-dark(#f8f8f8, #262052);
+  --header-bg-color: var(--snow-colors-neutral-0);
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -55,3 +61,15 @@ pre {
   overflow: scroll;
   padding: 0.5rem 0.75rem;
 }
+
+/* #f8f8f8 */
+
+/* Light Theme */
+// .theme-light {
+//   --header-bg-color: #fff;
+// }
+
+// /* Dark Theme */
+// .theme-dark {
+//   --header-bg-color: #262052;
+// }

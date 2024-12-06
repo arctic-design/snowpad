@@ -1,27 +1,25 @@
 'use client';
 import dagre from '@dagrejs/dagre';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
   Controls,
-  useNodesState,
-  useEdgesState,
   ReactFlowProvider,
-  MarkerType,
   addEdge,
   OnConnect,
+  Position,
   Node,
   Edge,
+  MarkerType,
   useReactFlow,
-  Position,
+  useNodesState,
+  useEdgesState,
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
 import { generateFlowData } from '@/utility/generateFlowData';
 import { CustomNode } from './CustomNode';
-
-const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
 const nodeWidth = 172;
 const nodeHeight = 36;
@@ -31,8 +29,11 @@ const getLayoutedElements = (
   edges: Edge[],
   direction: 'LR' | 'TB' = 'LR'
 ): { nodes: Node[]; edges: Edge[] } => {
-  const isHorizontal = direction === 'LR';
+  const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setGraph({ rankdir: direction });
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+  const isHorizontal = direction === 'LR';
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -62,15 +63,34 @@ const getLayoutedElements = (
 
 type FlowViewerProps = {
   jsonData: Record<string, unknown>;
+  onFlowCountChange: ({
+    nodeCount,
+    edgeCount,
+  }: {
+    nodeCount: number;
+    edgeCount: number;
+  }) => void;
 };
 
-const FlowViewerContent: React.FC<FlowViewerProps> = ({ jsonData }) => {
+const FlowViewerContent: React.FC<FlowViewerProps> = ({
+  jsonData,
+  onFlowCountChange,
+}) => {
   const { fitView } = useReactFlow();
-  const { nodes: initialNodes, edges: initialEdges } =
-    generateFlowData(jsonData);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  // Memoize the generation and layout of nodes and edges to avoid unnecessary computations
+  const layoutedElements = useMemo(() => {
+    const { nodes, edges } = generateFlowData(jsonData);
+    return getLayoutedElements(nodes, edges);
+  }, [jsonData]);
+
+  // Initialize state with memoized nodes and edges
+  const [nodes, setNodes, onNodesChange] = useNodesState(
+    layoutedElements.nodes
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+    layoutedElements.edges
+  );
 
   const onConnect: OnConnect = useCallback(
     (connection) => setEdges((eds) => addEdge(connection, eds)),
@@ -78,20 +98,17 @@ const FlowViewerContent: React.FC<FlowViewerProps> = ({ jsonData }) => {
   );
 
   useEffect(() => {
-    const { nodes, edges } = generateFlowData(jsonData);
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      nodes,
-      edges
-    );
+    // Update nodes and edges when layoutedElements change
+    setNodes(layoutedElements.nodes);
+    setEdges(layoutedElements.edges);
+    onFlowCountChange({
+      nodeCount: layoutedElements.nodes.length,
+      edgeCount: layoutedElements.edges.length,
+    });
 
-    setNodes(layoutedNodes);
-    setEdges(layoutedEdges);
-
+    // Fit the view to the updated nodes and edges
     fitView();
-  }, [jsonData, setNodes, setEdges, fitView]);
-
-  console.log('nodes: ', nodes);
-  console.log('edges: ', edges);
+  }, [layoutedElements, setNodes, setEdges, fitView, onFlowCountChange]);
 
   return (
     <ReactFlow
@@ -104,7 +121,7 @@ const FlowViewerContent: React.FC<FlowViewerProps> = ({ jsonData }) => {
       nodeTypes={{ custom: CustomNode }}
       defaultEdgeOptions={{
         animated: true,
-        // type: 'smoothstep',
+        type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
       }}
     >
@@ -114,8 +131,14 @@ const FlowViewerContent: React.FC<FlowViewerProps> = ({ jsonData }) => {
   );
 };
 
-export const FlowViewer: React.FC<FlowViewerProps> = ({ jsonData }) => (
+export const FlowViewer: React.FC<FlowViewerProps> = ({
+  jsonData,
+  onFlowCountChange,
+}) => (
   <ReactFlowProvider>
-    <FlowViewerContent jsonData={jsonData} />
+    <FlowViewerContent
+      jsonData={jsonData}
+      onFlowCountChange={onFlowCountChange}
+    />
   </ReactFlowProvider>
 );

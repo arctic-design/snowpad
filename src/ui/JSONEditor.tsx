@@ -6,16 +6,21 @@ import MonacoEditor from '@monaco-editor/react';
 type JSONEditorProps = {
   value: string;
   onChange: (value: string) => void;
+  isDarkMode?: boolean;
 };
 
-const JSONEditor: React.FC<JSONEditorProps> = ({ value, onChange }) => {
+const JSONEditor: React.FC<JSONEditorProps> = ({
+  value,
+  onChange,
+  isDarkMode,
+}) => {
   const handleEditorChange = (value?: string) => {
     if (value) onChange(value);
   };
 
   return (
     <MonacoEditor
-      height="100vh"
+      height="100%"
       language="json"
       value={value}
       onChange={handleEditorChange}
@@ -24,6 +29,7 @@ const JSONEditor: React.FC<JSONEditorProps> = ({ value, onChange }) => {
         minimap: { enabled: false },
         wordWrap: 'on',
       }}
+      theme={isDarkMode ? 'vs-dark' : 'light'}
     />
   );
 };
