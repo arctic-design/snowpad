@@ -1,3 +1,4 @@
+'use client';
 import {
   ActionMenu,
   ActionMenuItem,
@@ -6,6 +7,7 @@ import {
   ThemeSwitch,
 } from '@arctic-kit/snow';
 import { styled } from '@pigment-css/react';
+import { useRef } from 'react';
 
 const HeaderContainer = styled.header(
   ({ theme: { vars: theme } }: SnowThemeArgs) => ({
@@ -19,18 +21,39 @@ const HeaderContainer = styled.header(
     color: theme.colors.neutral[1000],
     fontSize: theme.font.size[50],
     borderBottom: `1px solid ${theme.colors.grey[500]}`,
-
-    svg: {
-      width: 16,
-    },
   })
 );
 
 export function Header({
   onDarkModeChange,
+  onImport,
 }: {
   onDarkModeChange: (isDarkMode: boolean) => void;
+  onImport: (inputFile: string) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const result = e.target?.result;
+        onImport(result as string);
+      } catch (error) {
+        console.error('Error parsing JSON file:', error);
+        alert('Invalid JSON file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <HeaderContainer>
       <Box
@@ -42,13 +65,18 @@ export function Header({
         }}
       >
         <ActionMenu label="File" variant="text" itemSize="small">
-          <ActionMenuItem label="Import" />
+          <ActionMenuItem label="Import" onClick={handleImportClick} />
           <ActionMenuItem label="Export" />
         </ActionMenu>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          style={{ display: 'none' }}
+          onChange={handleFileUpload}
+        />
       </Box>
-      <Box>
-        <ThemeSwitch onChange={onDarkModeChange} />
-      </Box>
+      <ThemeSwitch onChange={onDarkModeChange} />
     </HeaderContainer>
   );
 }

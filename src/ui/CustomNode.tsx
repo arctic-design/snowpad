@@ -1,14 +1,39 @@
 import { memo } from 'react';
-import { Handle, NodeProps, Position, Node } from '@xyflow/react';
+import { Handle, NodeProps, Position, Node, NodeTypes } from '@xyflow/react';
 import { styled } from '@pigment-css/react';
 import { SnowThemeArgs } from '@arctic-kit/snow';
+import { CustomNodeDataType } from '@/types';
+
+const StringElementNode = styled.div(
+  ({ theme: { vars: theme } }: SnowThemeArgs) => ({
+    display: 'inline',
+
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: theme.colors.primary[400],
+  })
+);
+
+const RecordElementNode = styled.div(
+  ({ theme: { vars: theme } }: SnowThemeArgs) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 4,
+    '.key': {
+      color: theme.colors.primary[400],
+    },
+  })
+);
 
 const NodeContainer = styled.div<{ selected?: boolean }>(
   ({ theme: { vars: theme } }: SnowThemeArgs) => ({
-    minWidth: 120,
-    padding: 8,
+    // minWidth: 120,
+    padding: '6px 8px',
     borderRadius: 4,
-    background: theme.colors.neutral[0],
+    // background: theme.colors.neutral[0],
+    backgroundColor: theme.colors.grey[50],
     color: theme.colors.neutral[1000],
     border: `1px solid ${theme.colors.grey[900]}`,
   })
@@ -19,21 +44,17 @@ const NodeContent = styled.div({
   flexDirection: 'column',
   justifyContent: 'flex-start',
   gap: 2,
-  fontSize: 11,
+  fontSize: 12,
   fontWeight: 500,
   '.title': {
-    fontSize: 10,
+    fontSize: 14,
   },
 });
 
-export type CustomNodeDataType = {
-  label: string;
-  nodeType: 'org' | 'tenant' | 'contract';
-  title: string;
-};
-
 export const CustomNode = memo(
   ({ data, selected }: NodeProps<Node<CustomNodeDataType>>) => {
+    const { label: dataLabel } = data;
+    const isString = typeof dataLabel === 'string';
     return (
       <NodeContainer>
         {data.nodeType !== 'org' && (
@@ -49,9 +70,16 @@ export const CustomNode = memo(
               alignItems: 'flex-start',
             }}
           >
-            {data.label.split(', ').map((item) => (
-              <span key={item}>{item}</span>
-            ))}
+            {isString ? (
+              <StringElementNode>{dataLabel}</StringElementNode>
+            ) : (
+              Object.keys(dataLabel).map((item) => (
+                <RecordElementNode key={item}>
+                  <span className="key">{`${item}:`}</span>
+                  <span>{dataLabel[item]}</span>
+                </RecordElementNode>
+              ))
+            )}
           </div>
         </NodeContent>
 
@@ -62,3 +90,7 @@ export const CustomNode = memo(
     );
   }
 );
+
+export const nodeTypes = {
+  custom: CustomNode,
+} satisfies NodeTypes;

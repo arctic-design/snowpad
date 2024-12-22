@@ -19,7 +19,7 @@ import {
 
 import '@xyflow/react/dist/style.css';
 import { generateFlowData } from '@/utility/generateFlowData';
-import { CustomNode } from './CustomNode';
+import { nodeTypes } from './CustomNode';
 
 const nodeWidth = 172;
 const nodeHeight = 36;
@@ -129,12 +129,19 @@ const FlowViewerContent: React.FC<FlowViewerProps> = ({
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       fitView
-      nodeTypes={{ custom: CustomNode }}
+      nodeTypes={nodeTypes}
       defaultEdgeOptions={{
         animated: true,
         type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+        },
+        focusable: false,
+        deletable: false,
+        reconnectable: false,
+        selectable: false,
       }}
+      nodesConnectable={false}
     >
       <Background />
       <Controls />

@@ -7,11 +7,14 @@ const transformData = (value: any): string | any =>
   value === null ? 'null' : value;
 
 // Create a node
-const createNode = (id: string, label: string): Node => ({
+const createNode = (
+  id: string,
+  label: string | Record<string, string>
+): Node => ({
   id,
   type: 'custom',
   position,
-  data: { label },
+  data: { label, nodeType: 'string' },
 });
 
 // Create an edge
@@ -23,18 +26,17 @@ const createEdge = (source: string, target: string): Edge => ({
 });
 
 // Optimized function to find primitives
-const findPrimitives = (data: any): string => {
-  let primitives = '';
+const findPrimitives = (data: any): Record<string, string> => {
+  let primitivesRecord: Record<string, string> = {};
   for (const [key, value] of Object.entries(data)) {
     if (
       (typeof value !== 'object' || value === null) &&
       !Array.isArray(value)
     ) {
-      if (primitives) primitives += ', ';
-      primitives += `${key}: ${transformData(value)}`;
+      primitivesRecord[key] = transformData(value) + '';
     }
   }
-  return primitives;
+  return primitivesRecord;
 };
 
 // Main function to generate nodes and edges
@@ -67,7 +69,7 @@ export const generateFlowData = (
     } else {
       const primitives = findPrimitives(data);
 
-      if (primitives) {
+      if (Object.keys(primitives).length > 0) {
         const primitivesNodeId = `node-${nodeIdCounter++}`;
         nodes.push(createNode(primitivesNodeId, primitives));
 

@@ -101,7 +101,10 @@ const JSONViewerScreen: React.FC = () => {
   return (
     <>
       <Suspense fallback={<HeaderSkeleton />}>
-        <Header onDarkModeChange={setIsDarkMode} />
+        <Header
+          onDarkModeChange={setIsDarkMode}
+          onImport={(inputFile) => validateAndFormatJson(inputFile)}
+        />
       </Suspense>
       <ContentContainer>
         <EditorViewContainer hide={hideEditor}>
