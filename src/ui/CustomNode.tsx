@@ -4,91 +4,70 @@ import { styled } from '@pigment-css/react';
 import { SnowThemeArgs } from '@arctic-kit/snow';
 import { CustomNodeDataType } from '@/types';
 
-const StringElementNode = styled.div(
-  ({ theme: { vars: theme } }: SnowThemeArgs) => ({
-    display: 'inline',
-
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    color: theme.colors.primary[400],
-  })
-);
-
-const RecordElementNode = styled.div(
-  ({ theme: { vars: theme } }: SnowThemeArgs) => ({
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 4,
-    '.key': {
-      color: theme.colors.primary[400],
-    },
-  })
-);
-
 const NodeContainer = styled.div<{ selected?: boolean }>(
-  ({ theme: { vars: theme } }: SnowThemeArgs) => ({
-    // minWidth: 120,
-    padding: '6px 8px',
-    borderRadius: 4,
-    // background: theme.colors.neutral[0],
-    backgroundColor: theme.colors.grey[50],
-    color: theme.colors.neutral[1000],
-    border: `1px solid ${theme.colors.grey[900]}`,
+  ({
+    theme: { vars: t },
+    selected,
+  }: SnowThemeArgs & { selected?: boolean }) => ({
+    backgroundColor: selected
+      ? t.colors.secondary[100]
+      : t.colors.secondary[50],
+    border: `1px solid ${
+      selected ? t.colors.secondary[500] : t.colors.grey[200]
+    }`,
+    // color: t.colors.neutral[1000],
+    borderRadius: 8,
+    boxShadow: selected
+      ? `0 4px 12px ${t.colors.grey[400]}`
+      : `0 1px 4px ${t.colors.grey[300]}`,
+    padding: 8,
+    minWidth: 140,
+    transition: 'all 0.2s ease',
   })
 );
 
-const NodeContent = styled.div({
+const HeaderBar = styled.div(({ theme: { vars: t } }: SnowThemeArgs) => ({
+  backgroundColor: t.colors.secondary[500],
+  color: '#fff',
+  padding: '4px 6px',
+  borderRadius: '6px 6px 0 0',
+  fontSize: 12,
+  fontWeight: 600,
+  margin: '-8px -8px 4px',
+}));
+
+const Content = styled.div({
   display: 'flex',
   flexDirection: 'column',
-  justifyContent: 'flex-start',
-  gap: 2,
+  gap: 4,
   fontSize: 12,
   fontWeight: 500,
-  '.title': {
-    fontSize: 14,
-  },
 });
 
 export const CustomNode = memo(
-  ({ data, selected }: NodeProps<Node<CustomNodeDataType>>) => {
-    const { label: dataLabel } = data;
-    const isString = typeof dataLabel === 'string';
-    return (
-      <NodeContainer>
-        {data.nodeType !== 'org' && (
-          <Handle type="target" position={Position.Left} />
+  ({ id, selected, data }: NodeProps<Node<CustomNodeDataType>>) => (
+    <NodeContainer selected={selected}>
+      <Handle type="target" position={Position.Left} style={{ top: 16 }} />
+      {data.title && <HeaderBar>{data.title}</HeaderBar>}
+      <Content>
+        {typeof data.label === 'string' ? (
+          <div>{data.label}</div>
+        ) : (
+          Object.entries(data.label).map(([k, v]) => (
+            <div key={k}>
+              <strong
+                style={{ color: data.nodeType === 'auto' ? undefined : '#333' }}
+              >
+                {k}:
+              </strong>{' '}
+              {v}
+            </div>
+          ))
         )}
-        <NodeContent>
-          <div className="title">{data.title}</div>
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-            }}
-          >
-            {isString ? (
-              <StringElementNode>{dataLabel}</StringElementNode>
-            ) : (
-              Object.keys(dataLabel).map((item) => (
-                <RecordElementNode key={item}>
-                  <span className="key">{`${item}:`}</span>
-                  <span>{dataLabel[item]}</span>
-                </RecordElementNode>
-              ))
-            )}
-          </div>
-        </NodeContent>
-
-        {data.nodeType !== 'contract' && (
-          <Handle type="source" position={Position.Right} />
-        )}
-      </NodeContainer>
-    );
-  }
+      </Content>
+      <Handle type="source" position={Position.Right} style={{ top: 16 }} />
+    </NodeContainer>
+  )
 );
 
 export const nodeTypes = {

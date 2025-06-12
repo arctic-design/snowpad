@@ -1,107 +1,92 @@
+// generateFlowData.ts
 import { Node, Edge } from '@xyflow/react';
+type Q = { value: any; path: string; parent?: string };
 
-const position = { x: 0, y: 0 };
+// unchanged
+function transformData(val: any): string {
+  return val === null ? 'null' : String(val);
+}
 
-// Transform null values to a readable format
-const transformData = (value: any): string | any =>
-  value === null ? 'null' : value;
-
-// Create a node
-const createNode = (
+// now with a third “hideTitle” flag
+function createNode(
   id: string,
-  label: string | Record<string, string>
-): Node => ({
-  id,
-  type: 'custom',
-  position,
-  data: { label, nodeType: 'string' },
-});
+  label: string | Record<string, string>,
+  hideTitle = false
+): Node {
+  return {
+    id,
+    type: 'custom',
+    position: { x: 0, y: 0 },
+    data: {
+      // if hideTitle=true, title becomes '', and your CustomNode will skip rendering it
+      title: hideTitle ? '' : Array.isArray(label) ? id : id.split('.').pop(),
+      label,
+      nodeType: 'auto',
+    },
+  };
+}
 
-// Create an edge
-const createEdge = (source: string, target: string): Edge => ({
-  id: `e-${source}-${target}`,
-  source,
-  target,
-  deletable: false,
-});
+function createEdge(src: string, tgt: string): Edge {
+  return {
+    id: `e-${src}-${tgt}`,
+    source: src,
+    target: tgt,
+    animated: false,
+    deletable: false,
+  };
+}
 
-// Optimized function to find primitives
-const findPrimitives = (data: any): Record<string, string> => {
-  let primitivesRecord: Record<string, string> = {};
-  for (const [key, value] of Object.entries(data)) {
-    if (
-      (typeof value !== 'object' || value === null) &&
-      !Array.isArray(value)
-    ) {
-      primitivesRecord[key] = transformData(value) + '';
-    }
-  }
-  return primitivesRecord;
-};
-
-// Main function to generate nodes and edges
-export const generateFlowData = (
-  data: any,
-  parentId: string | null = null
-): { nodes: Node[]; edges: Edge[] } => {
-  let nodeIdCounter = 0; // Initialize nodeIdCounter inside the function
-
+/**
+ * Breadth‐first traversal of any JSON-like value.
+ * Leaves now get hideTitle=true.
+ */
+export function generateFlowData(data: any) {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  const processData = (data: any, parentId: string | null): void => {
-    let currentParentId = parentId;
+  const q: Q[] = [{ value: data, path: 'root' }];
 
-    if (typeof data !== 'object' || data === null) {
-      // Process primitives
-      const primitiveNodeId = `node-${nodeIdCounter++}`;
-      nodes.push(createNode(primitiveNodeId, transformData(data)));
-      if (currentParentId) {
-        edges.push(createEdge(currentParentId, primitiveNodeId));
-      }
-    } else if (Array.isArray(data)) {
-      if (!currentParentId) {
-        currentParentId = `node-${nodeIdCounter++}`;
-      }
-      for (const dataItem of data) {
-        processData(dataItem, currentParentId);
-      }
+  while (q.length) {
+    const { value, path, parent } = q.shift()!;
+
+    // detect a primitive leaf
+    const isLeaf = value === null || typeof value !== 'object';
+
+    // build the label as before
+    let label: string | Record<string, string>;
+    if (isLeaf) {
+      label = transformData(value);
+    } else if (Array.isArray(value)) {
+      label = `${path.split('.').pop()}[${value.length}]`;
     } else {
-      const primitives = findPrimitives(data);
-
-      if (Object.keys(primitives).length > 0) {
-        const primitivesNodeId = `node-${nodeIdCounter++}`;
-        nodes.push(createNode(primitivesNodeId, primitives));
-
-        if (currentParentId) {
-          edges.push(createEdge(currentParentId, primitivesNodeId));
+      const rec: Record<string, string> = {};
+      for (const [k, v] of Object.entries(value)) {
+        if (v === null || typeof v !== 'object') {
+          rec[k] = transformData(v);
         }
-
-        currentParentId = primitivesNodeId;
       }
+      label = Object.keys(rec).length ? rec : path.split('.').pop()!;
+    }
 
-      for (const [key, value] of Object.entries(data)) {
-        if (typeof value === 'object' && value !== null) {
-          const objectNodeId = `node-${nodeIdCounter++}`;
+    // now pass isLeaf into createNode
+    nodes.push(createNode(path, label, isLeaf));
+    if (parent) edges.push(createEdge(parent, path));
 
-          nodes.push(
-            createNode(
-              objectNodeId,
-              Array.isArray(value) ? `${key}(${value.length})` : key
-            )
-          );
-
-          if (currentParentId) {
-            edges.push(createEdge(currentParentId, objectNodeId));
+    // enqueue non‐primitives
+    if (value && typeof value === 'object') {
+      if (Array.isArray(value)) {
+        value.forEach((v, i) =>
+          q.push({ value: v, path: `${path}[${i}]`, parent: path })
+        );
+      } else {
+        Object.entries(value).forEach(([k, v]) => {
+          if (v && typeof v === 'object') {
+            q.push({ value: v, path: `${path}.${k}`, parent: path });
           }
-
-          processData(value, objectNodeId);
-        }
+        });
       }
     }
-  };
-
-  processData(data, parentId);
+  }
 
   return { nodes, edges };
-};
+}

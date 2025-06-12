@@ -1,32 +1,42 @@
-const { FlatCompat } = require('@eslint/eslintrc');
+// const { FlatCompat } = require('@eslint/eslintrc');
 const js = require('@eslint/js');
-const { fixupConfigRules } = require('@eslint/compat');
+// const { fixupConfigRules } = require('@eslint/compat');
 const nx = require('@nx/eslint-plugin');
+const typescriptEslint = require('typescript-eslint');
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-});
+// const compat = new FlatCompat({
+//   baseDirectory: __dirname,
+//   recommendedConfig: js.configs.recommended,
+// });
 
 module.exports = [
-  ...fixupConfigRules(compat.extends('next')),
+  js.configs.recommended,
+  ...typescriptEslint.configs.recommended,
 
-  ...fixupConfigRules(compat.extends('next/core-web-vitals')),
-
-  ...nx.configs['flat/base'],
-  ...nx.configs['flat/typescript'],
-  ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist'],
+    ignores: ['**/dist', '.next/**/*'],
   },
+
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-    rules: {
-      '@next/next/no-html-link-for-pages': ['error', './pages'],
+    plugins: {
+      '@nx': nx,
     },
-  },
-  ...nx.configs['flat/react-typescript'],
-  {
-    ignores: ['.next/**/*'],
+    rules: {
+      '@nx/enforce-module-boundaries': [
+        'error',
+        {
+          enforceBuildableLibDependency: true,
+          allow: [],
+          depConstraints: [
+            {
+              sourceTag: '*',
+              onlyDependOnLibsWithTags: ['*'],
+            },
+          ],
+        },
+      ],
+      '@next/next/no-html-link-for-pages': 'off',
+    },
   },
 ];

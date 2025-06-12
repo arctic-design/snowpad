@@ -98,13 +98,24 @@ const JSONViewerScreen: React.FC = () => {
     setJsonInput(value);
   }, []);
 
+  const handleImport = useCallback((raw: string) => {
+    // parse (or bail)
+    try {
+      const parsed = JSON.parse(raw);
+      const pretty = JSON.stringify(parsed, null, 2);
+
+      // overwrite BOTH the data _and_ the editor contents
+      setError('');
+      setJsonInput(pretty);
+    } catch (e: any) {
+      setError(e.message || 'Invalid JSON');
+    }
+  }, []);
+
   return (
     <>
       <Suspense fallback={<HeaderSkeleton />}>
-        <Header
-          onDarkModeChange={setIsDarkMode}
-          onImport={(inputFile) => validateAndFormatJson(inputFile)}
-        />
+        <Header onDarkModeChange={setIsDarkMode} onImport={handleImport} />
       </Suspense>
       <ContentContainer>
         <EditorViewContainer hide={hideEditor}>
